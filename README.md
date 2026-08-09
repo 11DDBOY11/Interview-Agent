@@ -149,5 +149,4 @@ Authenticity and engineering maturity mean acknowledging trade-offs:
 This project was built iteratively using Google's **Antigravity** autonomous AI coding agent. 
 
 Rather than hiding the AI-assisted process, the full provenance is available for review:
-- 📖 [**PROMPTS.md**](PROMPTS.md): The original architecture instructions and directives.
-- 📜 [**Conversation History**](conversation_history.md): The full session transcript detailing the exact iterative build process, bug fixes (like resolving React 18 Strict Mode double-mounts with TTS), and decision making.
+- 📖 [**PROMPTS.md**](PROMPTS.md): The original architecture instructions and directives detailing the exact iterative build process and decision making.
