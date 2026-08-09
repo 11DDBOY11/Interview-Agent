@@ -4,7 +4,7 @@
 ## 🔗 Live Demos
 - **Frontend:** [https://interview-agent-delta-roan.vercel.app/](https://interview-agent-delta-roan.vercel.app/)  
   *(**Note:** Voice mode requires Google Chrome or Chromium-based browsers for Web Speech API support. Text mode works anywhere!)*
-- **Backend (API):** `https://...` *(Live Render URL)*
+- **Backend (API):** `https://interview-agent-sad6.onrender.com`
 
 ---
 
@@ -96,38 +96,69 @@ Navigate to `http://localhost:5173`. Ensure you are using Chrome if you intend t
 
 The entire application operates over a single, stateful endpoint: `POST /api/interview`.
 
-### Request Shape
+### 1. Turn 1 (Initialization)
+On the very first turn, the frontend provides the full candidate context to initialize the session. The `message` can be empty if the interviewer should speak first.
+
+**Request:**
 ```json
 {
   "sessionId": "abc-123",
   "candidate": {
-    "member": { "id": "1", "name": "Sarah Johnson", "jobRole": "Senior Data Engineer" },
-    "track": { "id": "de", "title": "Data Engineering" },
-    "currentDay": 5
+    "member": { "id": "CAND-001", "name": "Sarah Johnson", "jobRole": "Senior Data Engineer" },
+    "missions": [
+      { "day": 7, "title": "Embeddings Explained", "passed": true, "attempts": 1 }
+    ],
+    "signals": { "commitDays": 28, "missionsCompleted": 30, "missionsFirstTry": 20 }
   },
-  "message": "My answer to your question..."
+  "message": ""
 }
 ```
-*(Note: `candidate` is only required on Turn 1 to initialize the state. `message` can be an empty string if the candidate remains silent or skips).*
-
-### Response Shape (During Interview)
+**Response:**
 ```json
 {
-  "reply": "That's a great example of a clustered index. Let's move on to...",
+  "reply": "Hi Sarah! I see you passed the Embeddings module on your first try. Let's talk about...",
   "done": false
 }
 ```
 
-### Response Shape (Final Turn)
+### 2. Mid-Turn (Continuing the Interview)
+For all subsequent turns, the `candidate` object is omitted since the backend already holds it in memory for that `sessionId`.
+
+**Request:**
 ```json
 {
-  "reply": "We've covered everything. I'm preparing your feedback now...",
+  "sessionId": "abc-123",
+  "message": "I think embeddings are dense vector representations..."
+}
+```
+**Response:**
+```json
+{
+  "reply": "That's exactly right. Can you elaborate on how you'd store them?",
+  "done": false
+}
+```
+
+### 3. Final Turn (Feedback Generation)
+When the interview reaches its conclusion (after covering the set number of topics), the backend signals completion and synthesizes the full transcript into a structured feedback object.
+
+**Request:**
+```json
+{
+  "sessionId": "abc-123",
+  "message": "I would use a vector database like Pinecone."
+}
+```
+**Response:**
+```json
+{
+  "reply": "Great. We've covered everything we needed to today! I'm preparing your feedback now...",
   "done": true,
   "feedback": {
-    "summary": "Overall solid grasp of relational modeling.",
-    "strengths": ["Understanding of indexing"],
-    "gaps": ["Fuzzy on distributed joins"],
-    "next": ["Review Spark shuffle mechanisms"]
+    "summary": "Sarah demonstrated a strong foundational understanding of vector representations and storage.",
+    "strengths": ["Clear explanation of dense vectors", "Familiarity with Pinecone"],
+    "gaps": ["Did not mention indexing algorithms like HNSW"],
+    "next": ["Review vector database indexing strategies for scaling"]
   }
 }
 ```
