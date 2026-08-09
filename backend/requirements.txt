@@ -1,6 +1,6 @@
 fastapi>=0.115.2
 uvicorn[standard]==0.30.6
-groq==0.11.0
+groq
 python-dotenv>=1.2.2
 pydantic==2.9.2
 tenacity==8.5.0
