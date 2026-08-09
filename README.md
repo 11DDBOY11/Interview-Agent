@@ -2,7 +2,7 @@
 
 An intelligent, autonomous technical interview agent built with React, FastAPI, and Groq. It conducts real-time technical interviews, dynamically generating questions based on the candidate's resume, day of the cohort, and previous answers. It gracefully handles off-topic responses, maintains conversational state, and ultimately provides a comprehensive, structured feedback report.
 
-![Demo](https://github.com/11DDBOY11/Interview-Agent/demo.png) *(Add your demo screenshot here)*
+![Demo](demo.png) *(Add your demo screenshot here)*
 
 ## ✨ Features
 
