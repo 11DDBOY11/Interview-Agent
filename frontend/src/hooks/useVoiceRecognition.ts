@@ -3,7 +3,7 @@ import type { Message } from "../components/InterviewChat";
 
 export type VoiceState = "idle" | "speaking" | "listening" | "processing" | "confirming_skip";
 
-const SpeechRecognitionAPI = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
 interface UseVoiceRecognitionOptions {
   messages: Message[];
