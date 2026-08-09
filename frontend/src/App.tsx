@@ -101,9 +101,6 @@ export default function App() {
           )}
         </div>
 
-        <p className="text-center text-gray-600 text-xs mt-6">
-          Grader endpoint: <code className="text-gray-500">POST {API_BASE}/api/interview</code>
-        </p>
       </div>
     </div>
   );
