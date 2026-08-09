@@ -46,9 +46,14 @@ app = FastAPI(title="AI Interview Agent", version="1.0.0")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+ALLOW_ORIGINS = os.environ.get(
+    "ALLOW_ORIGINS", 
+    "http://localhost:5173,https://interview-agent-delta-roan.vercel.app"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOW_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
