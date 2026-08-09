@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { startInterview } from "./api";
+import { startInterview, API_BASE } from "./api";
 import type { Candidate } from "./candidates";
 import CandidatePicker from "./components/CandidatePicker";
 import ModeSelect from "./components/ModeSelect";
@@ -102,7 +102,7 @@ export default function App() {
         </div>
 
         <p className="text-center text-gray-600 text-xs mt-6">
-          Grader endpoint: <code className="text-gray-500">POST http://localhost:8000/api/interview</code>
+          Grader endpoint: <code className="text-gray-500">POST {API_BASE}/api/interview</code>
         </p>
       </div>
     </div>

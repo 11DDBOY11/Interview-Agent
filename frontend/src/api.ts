@@ -1,4 +1,7 @@
-const API_BASE = "http://localhost:8000";
+export const API_BASE = import.meta.env.VITE_API_BASE_URL;
+if (!API_BASE) {
+  throw new Error("CRITICAL: VITE_API_BASE_URL is missing. You must set this environment variable (e.g. in Vercel) and redeploy.");
+}
 
 export interface Feedback {
   summary: string;
