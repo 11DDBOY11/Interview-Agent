@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { startInterview, API_BASE } from "./api";
+import { startInterview } from "./api";
 import type { Candidate } from "./candidates";
 import CandidatePicker from "./components/CandidatePicker";
 import ModeSelect from "./components/ModeSelect";
