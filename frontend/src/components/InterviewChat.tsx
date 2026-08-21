@@ -76,6 +76,34 @@ export default function InterviewChat({
 
   const bottomRef    = useRef<HTMLDivElement>(null);
   const textareaRef  = useRef<HTMLTextAreaElement>(null);
+  const videoRef     = useRef<HTMLVideoElement>(null);
+
+  // Tab-switching guardrail
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && !done) {
+        alert("WARNING: Tab switching detected. This is a proctored interview. Please remain focused on this tab.");
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [done]);
+
+  // PiP Camera Feed
+  useEffect(() => {
+    let activeStream: MediaStream | null = null;
+    if (!done) {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(s => {
+        activeStream = s;
+        if (videoRef.current) videoRef.current.srcObject = s;
+      }).catch(err => console.error("PiP video error", err));
+    }
+    return () => {
+      if (activeStream) {
+        activeStream.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, [done]);
 
   // Voice Mode hook setup (only actively responds if activeMode === "voice")
   const { voiceState, transcript, forceSubmit } = useVoiceRecognition({
@@ -161,12 +189,22 @@ export default function InterviewChat({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {/* Floating Persistent Camera */}
+      <div className="absolute top-4 right-4 z-50 w-32 h-24 bg-slate-900 rounded-lg overflow-hidden border-2 border-brand-500/50 shadow-[0_8px_30px_rgb(0,0,0,0.5)]">
+        <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover transform scale-x-[-1]" />
+        <div className="absolute top-2 right-2 flex items-center justify-center w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg">
+          <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 pr-36">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-slow" />
-          <span className="text-gray-400 text-xs">Interviewing <span className="text-white font-medium">{candidateName}</span></span>
+          <span className="text-gray-400 text-xs border border-white/10 rounded-full px-2 py-1">
+            Interviewing <span className="text-white font-medium">{candidateName}</span>
+          </span>
         </div>
         <button onClick={onRestart} className="btn-ghost text-xs px-3 py-1.5">
           ✕ End

@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Turn:
-    day: int
+    question_index: int
     question: str
     answer: str | None = None
     # {completeness: "full"|"partial"|"missing", quality: "strong"|"shallow"|"confused"|"off_topic", reasoning: str}
@@ -17,33 +17,30 @@ class Turn:
 @dataclass
 class InterviewSession:
     session_id: str
-    candidate: dict                       # raw candidate object, kept as-is
-    question_plan: list[dict]             # ordered list of curriculum day dicts
+    candidate_name: str
+    role: str
+    questions: list[str]  # exactly 10 questions
     plan_index: int = 0
     transcript: list[Turn] = field(default_factory=list)
     followups_this_topic: int = 0
-    topics_covered: set[int] = field(default_factory=set)
-    questions_asked: int = 0
     # Track "missing" retries separately (cap at 1 per topic)
     missing_retries_this_topic: int = 0
     # Track off-topic redirects (cap at 1 per topic)
     off_topic_redirects_this_topic: int = 0
 
     @property
-    def current_day(self) -> dict | None:
-        """Return the curriculum day dict currently being probed."""
-        if self.plan_index < len(self.question_plan):
-            return self.question_plan[self.plan_index]
+    def current_question(self) -> str | None:
+        """Return the current base question."""
+        if self.plan_index < len(self.questions):
+            return self.questions[self.plan_index]
         return None
 
     @property
     def is_done(self) -> bool:
-        return self.questions_asked >= 8 and len(self.topics_covered) >= 4
+        return self.plan_index >= len(self.questions)
 
     def advance_topic(self) -> None:
-        """Move to the next plan entry and reset per-topic counters."""
-        if self.current_day:
-            self.topics_covered.add(self.current_day["day"])
+        """Move to the next base question and reset per-topic counters."""
         self.plan_index += 1
         self.followups_this_topic = 0
         self.missing_retries_this_topic = 0

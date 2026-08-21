@@ -17,9 +17,9 @@ function Section({
   colorClass: string;
   icon: React.ReactNode;
 }) {
-  if (!items.length) return null;
+  if (!items || !items.length) return null;
   return (
-    <div className="animate-slide-up">
+    <div className="animate-slide-up h-full">
       <div className={`flex items-center gap-2 mb-3 ${colorClass}`}>
         {icon}
         <h3 className="font-semibold text-sm uppercase tracking-wider">{title}</h3>
@@ -45,10 +45,10 @@ export default function FeedbackPanel({
   onRestart,
 }: FeedbackPanelProps) {
   return (
-    <div className="flex flex-col gap-6 animate-fade-in">
+    <div className="flex flex-col gap-6 animate-fade-in pb-10">
       {/* Header */}
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-600/40 to-violet-600/40 border border-brand-500/30 mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-600/40 to-violet-600/40 border border-brand-500/30 mb-4 shadow-[0_0_30px_-5px_rgba(99,102,241,0.3)]">
           <svg className="w-8 h-8 text-brand-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
               d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -58,50 +58,57 @@ export default function FeedbackPanel({
         <p className="text-gray-400 text-sm">Here's your personalised feedback, {candidateName.split(" ")[0]}</p>
       </div>
 
-      {/* Summary */}
-      <div className="glass p-4">
+      <div className="glass p-5 border-l-4 border-l-brand-500 rounded-lg bg-gradient-to-r from-brand-900/20 to-transparent">
         <p className="text-gray-300 text-sm leading-relaxed">{feedback.summary}</p>
       </div>
 
-      {/* Strengths / Gaps / Next */}
-      <div className="glass p-5 space-y-6">
-        <Section
-          title="Strengths"
-          items={feedback.strengths}
-          colorClass="text-emerald-400"
-          icon={
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M5 13l4 4L19 7" />
-            </svg>
-          }
-        />
-        <Section
-          title="Gaps"
-          items={feedback.gaps}
-          colorClass="text-amber-400"
-          icon={
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
-            </svg>
-          }
-        />
-        <Section
-          title="Next Steps"
-          items={feedback.next}
-          colorClass="text-brand-400"
-          icon={
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          }
-        />
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Left Column: Strengths & Gaps */}
+        <div className="space-y-6">
+          <div className="glass p-5 flex flex-col h-full border-t-2 border-t-emerald-500/50">
+            <Section
+              title="Strong Sections"
+              items={feedback.strong_sections}
+              colorClass="text-emerald-400"
+              icon={
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              }
+            />
+          </div>
+          
+          <div className="glass p-5 flex flex-col h-full border-t-2 border-t-red-400/50">
+            <Section
+              title="Weak Sections"
+              items={feedback.weak_sections}
+              colorClass="text-red-400"
+              icon={
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              }
+            />
+          </div>
+        </div>
+
+        {/* Right Column: Next Steps */}
+        <div className="glass p-5 border-t-2 border-t-brand-400/50 h-full">
+          <Section
+            title="Areas to Improve"
+            items={feedback.areas_to_improve}
+            colorClass="text-brand-400"
+            icon={
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            }
+          />
+        </div>
       </div>
 
-      <button onClick={onRestart} className="btn-ghost w-full text-center">
-        ↩ Start New Interview
+      <button onClick={onRestart} className="btn-ghost w-full text-center py-3">
+        Return to Home
       </button>
     </div>
   );

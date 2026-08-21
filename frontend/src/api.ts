@@ -5,9 +5,9 @@ if (!API_BASE) {
 
 export interface Feedback {
   summary: string;
-  strengths: string[];
-  gaps: string[];
-  next: string[];
+  strong_sections: string[];
+  weak_sections: string[];
+  areas_to_improve: string[];
 }
 
 export interface InterviewResponse {

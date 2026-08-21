@@ -22,7 +22,7 @@ from tenacity import (
 
 from prompts import (
     OPENING_SYSTEM, OPENING_USER,
-    QUESTION_GENERATOR_SYSTEM, QUESTION_GENERATOR_USER,
+    RESUME_ANALYZER_SYSTEM, RESUME_ANALYZER_USER,
     JUDGMENT_CLASSIFIER_SYSTEM, JUDGMENT_CLASSIFIER_USER,
     FOLLOWUP_GENERATOR_SYSTEM, FOLLOWUP_GENERATOR_USER,
     FEEDBACK_SYNTHESIZER_SYSTEM, FEEDBACK_SYNTHESIZER_USER,
@@ -30,7 +30,7 @@ from prompts import (
 
 logger = logging.getLogger(__name__)
 
-MODEL = "openai/gpt-oss-120b"
+MODEL = "llama-3.1-8b-instant"
 _client: AsyncGroq | None = None
 
 
@@ -74,11 +74,11 @@ _FEEDBACK_SCHEMA = {
             "type": "object",
             "properties": {
                 "summary": {"type": "string"},
-                "strengths": {"type": "array", "items": {"type": "string"}},
-                "gaps": {"type": "array", "items": {"type": "string"}},
-                "next": {"type": "array", "items": {"type": "string"}},
+                "strong_sections": {"type": "array", "items": {"type": "string"}},
+                "weak_sections": {"type": "array", "items": {"type": "string"}},
+                "areas_to_improve": {"type": "array", "items": {"type": "string"}},
             },
-            "required": ["summary", "strengths", "gaps", "next"],
+            "required": ["summary", "strong_sections", "weak_sections", "areas_to_improve"],
             "additionalProperties": False,
         },
     },
@@ -146,30 +146,22 @@ async def generate_opening(candidate: dict) -> str:
     return await _call(OPENING_SYSTEM, user, max_tokens=256)
 
 
-async def generate_question(
-    day: dict,
-    candidate: dict,
-    reason: str,
-    confidence: float,
-) -> str:
-    member = candidate["member"]
-    objectives_text = "\n".join(f"- {o}" for o in day.get("objectives", []))
-    user = QUESTION_GENERATOR_USER.format(
-        day=day["day"],
-        title=day["title"],
-        objectives=objectives_text,
-        job_role=member["jobRole"],
-        years_experience=member.get("yearsExperience", 0),
-        selection_reason=reason,
-        confidence_level=f"{confidence:.2f}",
-    )
-    return await _call(QUESTION_GENERATOR_SYSTEM, user, max_tokens=256)
+async def generate_questions(resume_text: str, role: str) -> list[str]:
+    user = RESUME_ANALYZER_USER.format(role=role, resume_text=resume_text)
+    raw = await _call(RESUME_ANALYZER_SYSTEM, user, max_tokens=1500)
+    try:
+        data = json.loads(raw)
+        if isinstance(data, list) and len(data) > 0:
+            return data[:10]
+    except Exception:
+        pass
+    
+    # Fallback if json parsing fails
+    lines = [line.strip().strip('",[]') for line in raw.split('\n') if len(line.strip()) > 10]
+    return lines[:10]
 
-
-async def judge_answer(day: dict, question: str, answer: str) -> dict:
-    objectives_text = "\n".join(f"- {o}" for o in day.get("objectives", []))
+async def judge_answer(question: str, answer: str) -> dict:
     user = JUDGMENT_CLASSIFIER_USER.format(
-        objectives=objectives_text,
         question=question,
         answer=answer,
     )
@@ -178,36 +170,27 @@ async def judge_answer(day: dict, question: str, answer: str) -> dict:
         "completeness": result["completeness"],
         "quality": result["quality"],
         "reasoning": result["reasoning"],
-        "day": day["day"],
-        "day_title": day["title"],
     }
 
-
 async def generate_followup(
-    situation: str,
-    original_question: str,
+    question: str,
     answer: str,
-    day: dict,
-    job_role: str,
+    reasoning: str,
 ) -> str:
-    objectives_text = "\n".join(f"- {o}" for o in day.get("objectives", []))
     user = FOLLOWUP_GENERATOR_USER.format(
-        situation=situation,
-        original_question=original_question,
+        question=question,
         answer=answer,
-        objectives=objectives_text,
-        job_role=job_role,
+        reasoning=reasoning,
     )
     return await _call(FOLLOWUP_GENERATOR_SYSTEM, user, max_tokens=256)
 
-
 async def generate_feedback(judgment_log: list[dict]) -> dict:
     log_text = json.dumps(judgment_log, indent=2)
-    user = FEEDBACK_SYNTHESIZER_USER.format(judgment_log=log_text)
+    user = FEEDBACK_SYNTHESIZER_USER.format(transcript=log_text)
     result = await _call_json(FEEDBACK_SYNTHESIZER_SYSTEM, user, schema=_FEEDBACK_SCHEMA, max_tokens=2048)
     return {
         "summary": result["summary"],
-        "strengths": result["strengths"],
-        "gaps": result["gaps"],
-        "next": result["next"],
+        "strong_sections": result["strong_sections"],
+        "weak_sections": result["weak_sections"],
+        "areas_to_improve": result["areas_to_improve"],
     }
