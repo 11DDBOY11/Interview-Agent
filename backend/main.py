@@ -8,10 +8,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 _HERE = Path(__file__).parent
-for _env_file in [_HERE / ".env", _HERE / ".env.example"]:
-    if _env_file.exists():
-        load_dotenv(_env_file, override=True)
-        break
+_env_file = _HERE / ".env"
+if _env_file.exists():
+    load_dotenv(_env_file)
 
 import pypdf
 import llm as llm_module
