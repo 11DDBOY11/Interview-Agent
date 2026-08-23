@@ -23,7 +23,8 @@ Most "AI interviewers" are just basic chatbots asking a hardcoded list of questi
 
 ```mermaid
 flowchart LR
-    A[Frontend<br>React/TS] -->|POST /api/interview| B[FastAPI<br>Single Endpoint]
+    A[Frontend<br>React/TS] -->|POST /api/init-interview| B[FastAPI<br>Two-step API]
+    A -->|POST /api/interview| B
     B --> C[(State Manager<br>In-Memory)]
     C --> D{Planner<br>Pipeline}
     D -->|Question Gen| E[Curriculum<br>Logic]
@@ -51,7 +52,7 @@ The core engineering of the agent lies in `planner.py`. When a candidate answers
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, Web Speech API (TTS/STT) |
+| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, Web Speech API (TTS/STT) |
 | **Backend** | FastAPI, Pydantic, SlowAPI (Rate Limiting) |
 | **AI / LLM** | Groq (`openai/gpt-oss-120b`), Tenacity (Retries/Resilience) |
 | **Deployment** | Vercel (Frontend), Render (Backend), Python 3.11.9 |
@@ -90,39 +91,62 @@ npm run dev
 ```
 Navigate to `http://localhost:5173`. Ensure you are using Chrome if you intend to test Voice Mode.
 
+### Frontend experience
+
+The frontend is a focused interview workspace rather than a dashboard:
+
+- **Landing:** Full-screen cinematic hero, MAESTER wordmark, and a single start action.
+- **Setup:** Candidate name, target role, PDF resume upload, camera preview, mirror toggle, and a pre-permission dialog for camera and microphone access.
+- **Interview:** Text or voice interaction, adaptive AI questions, tab-switching warning, and camera-in-picture preview.
+- **Feedback:** Honest strengths, weak sections, and improvement areas generated from the completed transcript.
+
+The frontend uses `VITE_API_BASE_URL` when provided and otherwise targets `http://127.0.0.1:8000`.
+
 ---
 
 ## 📡 API Contract
 
-The entire application operates over a single, stateful endpoint: `POST /api/interview`.
+The application uses a two-step, stateful API. Session state is held in the backend process.
 
-### 1. Turn 1 (Initialization)
-On the very first turn, the frontend provides the full candidate context to initialize the session. The `message` can be empty if the interviewer should speak first.
+### 1. Initialize a session
+
+The setup form uploads the resume and candidate details as multipart form data:
+
+```http
+POST /api/init-interview
+Content-Type: multipart/form-data
+```
+
+Form fields: `resume` (PDF), `role`, and `name`.
+
+**Response:**
+
+```json
+{ "sessionId": "abc-123" }
+```
+
+### 2. Request the first question
+
+The frontend immediately sends an empty message so the backend creates the first transcript turn and returns the first question.
 
 **Request:**
 ```json
 {
   "sessionId": "abc-123",
-  "candidate": {
-    "member": { "id": "CAND-001", "name": "Sarah Johnson", "jobRole": "Senior Data Engineer" },
-    "missions": [
-      { "day": 7, "title": "Embeddings Explained", "passed": true, "attempts": 1 }
-    ],
-    "signals": { "commitDays": 28, "missionsCompleted": 30, "missionsFirstTry": 20 }
-  },
   "message": ""
 }
 ```
 **Response:**
 ```json
 {
-  "reply": "Hi Sarah! I see you passed the Embeddings module on your first try. Let's talk about...",
+  "reply": "Tell me about the most technically challenging project on your resume.",
   "done": false
 }
 ```
 
-### 2. Mid-Turn (Continuing the Interview)
-For all subsequent turns, the `candidate` object is omitted since the backend already holds it in memory for that `sessionId`.
+### 3. Mid-turn (continuing the interview)
+
+For subsequent turns, send the candidate's answer. The backend keeps the candidate, question plan, transcript, and judgments in memory for that `sessionId`.
 
 **Request:**
 ```json
@@ -139,7 +163,7 @@ For all subsequent turns, the `candidate` object is omitted since the backend al
 }
 ```
 
-### 3. Final Turn (Feedback Generation)
+### 4. Final turn (feedback generation)
 When the interview reaches its conclusion (after covering the set number of topics), the backend signals completion and synthesizes the full transcript into a structured feedback object.
 
 **Request:**
@@ -156,9 +180,9 @@ When the interview reaches its conclusion (after covering the set number of topi
   "done": true,
   "feedback": {
     "summary": "Sarah demonstrated a strong foundational understanding of vector representations and storage.",
-    "strengths": ["Clear explanation of dense vectors", "Familiarity with Pinecone"],
-    "gaps": ["Did not mention indexing algorithms like HNSW"],
-    "next": ["Review vector database indexing strategies for scaling"]
+    "strong_sections": ["Clear explanation of dense vectors", "Familiarity with Pinecone"],
+    "weak_sections": ["Did not mention indexing algorithms like HNSW"],
+    "areas_to_improve": ["Review vector database indexing strategies for scaling"]
   }
 }
 ```
@@ -172,6 +196,7 @@ Authenticity and engineering maturity mean acknowledging trade-offs:
 1. **In-Memory Session State:** The `_sessions` dictionary in `main.py` is memory-bound to a single Python process. To scale horizontally (multiple workers or container orchestration), this needs to be migrated to Redis.
 2. **Browser Support for Voice:** Voice mode strictly depends on the experimental `window.SpeechRecognition` API, which currently only has stable support in Chrome/Chromium browsers.
 3. **Pydantic Compilation:** Deployments require a specific Python build environment (e.g., Python 3.11) with pre-compiled Rust wheels for `pydantic-core` to avoid exhausting CI/CD build resources during deployment.
+4. **Media permissions:** Camera and microphone access must be granted by the browser before an interview can start. Voice mode requires a Chromium-based browser with Web Speech API support.
 
 ---
 

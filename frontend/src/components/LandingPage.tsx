@@ -6,19 +6,22 @@ interface LandingPageProps {
 
 export default function LandingPage({ onStart }: LandingPageProps) {
   return (
-    <div className="flex flex-col items-center justify-center h-full space-y-8 animate-fade-in px-4 text-center">
-      <div className="space-y-4">
-        <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-indigo-400 tracking-tight drop-shadow-sm">
-          MAESTER
-        </h1>
-        <p className="text-xl text-gray-300 max-w-xl mx-auto font-light leading-relaxed">
-          The autonomous, resume-driven AI interviewer. Experience a proctored, adaptive technical interview tailored entirely to your experience.
+    <div className="landing-stage animate-fade-in">
+      <div className="landing-image" aria-hidden="true" />
+      <nav className="landing-nav" aria-label="Landing page navigation">
+        <span>MAESTER / AI INTERVIEW STUDIO</span>
+        <span>SESSION 01 / READY</span>
+      </nav>
+      <div className="landing-copy">
+        <p className="eyebrow">THE NEXT GENERATION OF TECHNICAL SCREENING</p>
+        <h2>Prove Your<br /><em>Skills.</em></h2>
+        <p className="landing-description">
+          A focused, adaptive interview built around your experience, your decisions, and the way you think under pressure.
         </p>
-      </div>
 
       <button
         onClick={onStart}
-        className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white transition-all duration-200 bg-brand-600 border border-transparent rounded-full shadow-lg hover:bg-brand-500 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 focus:ring-offset-slate-900"
+        className="hero-cta group"
       >
         <span>Start Interview</span>
         <svg
@@ -31,23 +34,13 @@ export default function LandingPage({ onStart }: LandingPageProps) {
         </svg>
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl text-left">
-        <div className="glass p-6 rounded-2xl border border-white/5">
-          <div className="text-brand-300 mb-2">📄</div>
-          <h3 className="text-white font-semibold mb-1">Resume Driven</h3>
-          <p className="text-gray-400 text-sm">Upload your CV. We instantly generate 10 highly targeted questions based on your unique background.</p>
-        </div>
-        <div className="glass p-6 rounded-2xl border border-white/5">
-          <div className="text-brand-300 mb-2">🎤</div>
-          <h3 className="text-white font-semibold mb-1">Proctored Experience</h3>
-          <p className="text-gray-400 text-sm">Full voice capabilities with camera verification and tab-switching guardrails for realism.</p>
-        </div>
-        <div className="glass p-6 rounded-2xl border border-white/5">
-          <div className="text-brand-300 mb-2">📊</div>
-          <h3 className="text-white font-semibold mb-1">Deep Evaluation</h3>
-          <p className="text-gray-400 text-sm">Adaptive follow-ups on your first 3 answers, culminating in a detailed performance breakdown.</p>
+        <div className="landing-meta">
+          <span><b>01</b> Resume-led</span>
+          <span><b>02</b> Adaptive questions</span>
+          <span><b>03</b> Honest feedback</span>
         </div>
       </div>
+      <div className="landing-index" aria-hidden="true">MAESTER® / 2026</div>
     </div>
   );
 }

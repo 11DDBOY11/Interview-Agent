@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,13 +7,48 @@
 @layer base {
   html { @apply scroll-smooth; }
   body {
-    @apply bg-gray-950 text-gray-100 font-sans antialiased;
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(51,85,255,0.18) 0%, transparent 70%),
-      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.10) 0%, transparent 60%);
+    @apply bg-ink text-gray-100 font-sans antialiased;
+    background: #081018;
     background-attachment: fixed;
   }
   * { box-sizing: border-box; }
+}
+
+@layer utilities {
+  .bg-ink { background-color: #081018; }
+  .page-noise {
+    background-image: linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(to bottom, black, transparent 80%);
+  }
+  .landing-frame { min-height: 100vh; }
+  .landing-frame .app-header { position: absolute; top: 20px; left: 50px; z-index: 3; }
+  .landing-frame main { min-height: 100vh; }
+  .brand-mark { position: relative; display: grid; place-items: center; width: 50px; height: 50px; border: 1px solid rgba(248,244,236,.5); border-radius: 13px; color: #081018; background: #f8f4ec; box-shadow: 0 10px 28px rgba(0,0,0,.25); }
+  .brand-mark span { font-size: 1.15rem; font-weight: 800; letter-spacing: -.08em; transform: translateX(-1px); }
+  .brand-mark i { position: absolute; right: 8px; bottom: 8px; width: 5px; height: 5px; border-radius: 50%; background: #4a9ac0; }
+  .brand-wordmark { color: #bdcbed; letter-spacing: .01em; }
+  .setup-page .setup-card { background: rgba(20,29,39,.92); }
+  .setup-page .glass, .setup-page .btn-ghost, .setup-page .hero-cta { border-radius: 6px; }
+  .setup-page .input-field:focus, .setup-page input:focus { box-shadow: 0 0 0 2px rgba(131,185,208,.12); }
+  .landing-stage { min-height: 100vh; position: relative; overflow: hidden; display: flex; align-items: center; padding: 6rem clamp(1rem, 14vw, 9rem); }
+  .landing-image { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,16,24,.96) 0%, rgba(8,16,24,.78) 30%, rgba(8,16,24,.2) 75%), linear-gradient(0deg, rgba(8,16,24,.5), transparent 45%), url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1800&q=85') center / cover; filter: saturate(.7); }
+  .landing-copy { position: relative; z-index: 1; max-width: 680px; }
+  .eyebrow { color: #83b9d0; font-family: 'DM Mono', monospace; font-size: .68rem; letter-spacing: .16em; margin-bottom: 1.5rem; }
+  .landing-copy h2 { color: #f8f4ec; font-size: clamp(3.5rem, 8vw, 7.5rem); font-weight: 500; letter-spacing: 0; line-height: .92; }
+  .landing-copy h2 em { color: #83b9d0; font-style: normal; }
+  .landing-description { color: rgba(248,244,236,.68); font-size: 1rem; line-height: 1.7; max-width: 410px; margin: 2rem 0; }
+  .hero-cta { display: inline-flex; align-items: center; gap: .75rem; background: #f8f4ec; color: #081018; padding: .9rem 1.35rem; border-radius: 3px; font-weight: 700; transition: transform .2s, background .2s; }
+  .hero-cta:hover { background: #fff; transform: translateX(4px); }
+  .landing-nav { position: absolute; top: 32px; right: 52px; z-index: 2; display: flex; gap: 2rem; color: rgba(248,244,236,.55); font-family: 'DM Mono', monospace; font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; }
+  .landing-meta { display: flex; gap: 1.5rem; margin-top: 5rem; color: rgba(248,244,236,.55); font-family: 'DM Mono', monospace; font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; }
+  .landing-meta b { color: #83b9d0; font-weight: 400; margin-right: .35rem; }
+  .landing-index { position: absolute; right: 52px; bottom: 34px; color: rgba(248,244,236,.42); font-family: 'DM Mono', monospace; font-size: .6rem; letter-spacing: .1em; }
+  .upload-zone { display: block; cursor: pointer; border: 1px dashed rgba(131,185,208,.5); border-radius: 8px; padding: 1.25rem; text-align: center; transition: background .2s, border-color .2s; }
+  .upload-zone:hover, .upload-zone:focus-within { background: rgba(55,138,221,.08); border-color: #83b9d0; }
+  .field-error { color: #fca5a5; font-size: .75rem; margin-top: .4rem; }
+  @media (min-width: 641px) and (max-width: 1000px) { .landing-stage { padding-left: 124px; padding-right: 0; } }
+  @media (max-width: 640px) { .landing-frame .app-header { top: 20px; left: 20px; } .landing-nav { top: 88px; left: 20px; right: auto; gap: .75rem; flex-direction: column; font-size: .52rem; } .landing-stage { min-height: 100vh; padding: 7rem 1.25rem 3rem; align-items: flex-end; } .landing-image { background: linear-gradient(0deg, #081018 5%, rgba(8,16,24,.72) 55%, rgba(8,16,24,.2)), url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1000&q=80') center / cover; } .landing-meta { gap: .8rem; flex-wrap: wrap; margin-top: 3rem; } .landing-index { right: 20px; bottom: 20px; font-size: .5rem; } }
 }
 
 @layer components {
