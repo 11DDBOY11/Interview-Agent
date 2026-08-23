@@ -30,7 +30,7 @@ from prompts import (
 
 logger = logging.getLogger(__name__)
 
-MODEL = "llama-3.1-8b-instant"
+MODEL = "openai/gpt-oss-120b"
 _client: AsyncGroq | None = None
 
 
