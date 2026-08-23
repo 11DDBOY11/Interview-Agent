@@ -129,7 +129,13 @@ async def _call_json(system: str, user: str, schema: dict, max_tokens: int = 512
             ],
         )
         raw = resp.choices[0].message.content.strip()
-        return json.loads(raw)
+        if raw.startswith("```json"):
+            raw = raw[7:]
+        elif raw.startswith("```"):
+            raw = raw[3:]
+        if raw.endswith("```"):
+            raw = raw[:-3]
+        return json.loads(raw.strip())
     return await _inner()
 
 
