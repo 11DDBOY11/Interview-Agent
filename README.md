@@ -198,7 +198,7 @@ Authenticity and engineering maturity mean acknowledging trade-offs:
 3. **Pydantic Compilation:** Deployments require a specific Python build environment (e.g., Python 3.11) with pre-compiled Rust wheels for `pydantic-core` to avoid exhausting CI/CD build resources during deployment.
 4. **Media permissions:** Camera and microphone access must be granted by the browser before an interview can start. Voice mode requires a Chromium-based browser with Web Speech API support.
 
----
+--- 
 
 ## 🤖 Built with Antigravity
 
