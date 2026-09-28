@@ -7,3 +7,4 @@ tenacity==8.5.0
 slowapi
 python-multipart
 pypdf
+requests

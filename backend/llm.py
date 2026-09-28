@@ -190,13 +190,27 @@ async def generate_followup(
     )
     return await _call(FOLLOWUP_GENERATOR_SYSTEM, user, max_tokens=256)
 
-async def generate_feedback(judgment_log: list[dict]) -> dict:
+async def generate_feedback(
+    judgment_log: list[dict],
+    candidate_name: str = "Candidate",
+    role: str = "Software Engineer",
+    questions_answered: int = 0,
+    total_questions: int = 10,
+) -> dict:
     log_text = json.dumps(judgment_log, indent=2)
-    user = FEEDBACK_SYNTHESIZER_USER.format(transcript=log_text)
+    completion_percent = round((questions_answered / max(total_questions, 1)) * 100)
+    user = FEEDBACK_SYNTHESIZER_USER.format(
+        candidate_name=candidate_name,
+        role=role,
+        questions_answered=questions_answered,
+        total_questions=total_questions,
+        completion_percent=completion_percent,
+        transcript=log_text,
+    )
     result = await _call_json(FEEDBACK_SYNTHESIZER_SYSTEM, user, schema=_FEEDBACK_SCHEMA, max_tokens=2048)
     return {
-        "summary": result["summary"],
-        "strong_sections": result["strong_sections"],
-        "weak_sections": result["weak_sections"],
-        "areas_to_improve": result["areas_to_improve"],
+        "summary": result.get("summary", ""),
+        "strong_sections": result.get("strong_sections", []),
+        "weak_sections": result.get("weak_sections", []),
+        "areas_to_improve": result.get("areas_to_improve", []),
     }

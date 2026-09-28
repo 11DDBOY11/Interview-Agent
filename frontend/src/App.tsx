@@ -47,7 +47,7 @@ export default function App() {
               initialReply={state.initialReply}
               candidateName={state.candidateName}
               mode="voice"
-              onFinish={() => setState({ screen: "landing" })}
+              onFinish={() => {}}
               onRestart={() => setState({ screen: "landing" })}
             />
           )}

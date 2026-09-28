@@ -5,6 +5,13 @@ export interface Feedback {
   strong_sections: string[];
   weak_sections: string[];
   areas_to_improve: string[];
+  strengths?: string[];
+  gaps?: string[];
+  next?: string[];
+  questions_answered?: number;
+  total_questions?: number;
+  completion_rate?: string;
+  score?: number;
 }
 
 export interface InterviewResponse {
@@ -31,16 +38,21 @@ export async function startInterview(
 
 export async function sendMessage(
   sessionId: string,
-  message: string
+  message: string,
+  action?: string
 ): Promise<InterviewResponse> {
   const res = await fetch(`${API_BASE}/api/interview`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sessionId, message }),
+    body: JSON.stringify({ sessionId, message, action }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
     throw new Error(err.detail ?? "Server error on message turn");
   }
   return res.json();
+}
+
+export async function finishInterview(sessionId: string): Promise<InterviewResponse> {
+  return sendMessage(sessionId, "__END_INTERVIEW__", "finish");
 }
