@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { type Feedback, sendMessage } from "../api";
+import { type Feedback, sendMessage, finishInterview } from "../api";
 import FeedbackPanel from "./FeedbackPanel";
 import { useVoiceRecognition } from "../hooks/useVoiceRecognition";
 
@@ -151,7 +151,7 @@ export default function InterviewChat({
       if (resp.done && resp.feedback) {
         setDone(true);
         setFeedback(resp.feedback);
-        onFinish(resp.feedback);
+        onFinish?.(resp.feedback);
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Unknown error");
@@ -160,6 +160,27 @@ export default function InterviewChat({
       if (activeMode === "text") {
         setTimeout(() => textareaRef.current?.focus(), 50);
       }
+    }
+  }
+
+  async function handleFinishEarly() {
+    if (loading || done) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await finishInterview(sessionId);
+      if (resp.reply) {
+        setMessages(prev => [...prev, { role: "ai", text: resp.reply }]);
+      }
+      if (resp.feedback) {
+        setDone(true);
+        setFeedback(resp.feedback);
+        onFinish?.(resp.feedback);
+      }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to generate feedback.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -206,9 +227,22 @@ export default function InterviewChat({
             Interviewing <span className="text-white font-medium">{candidateName}</span>
           </span>
         </div>
-        <button onClick={onRestart} className="btn-ghost text-xs px-3 py-1.5">
-          ✕ End
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleFinishEarly}
+            disabled={loading}
+            className="px-3 py-1.5 rounded-md text-xs font-medium bg-emerald-600/90 hover:bg-emerald-500 text-white border border-emerald-400/30 transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+            title="Conclude interview now and receive feedback on questions answered so far"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Finish & Get Feedback
+          </button>
+          <button onClick={onRestart} className="btn-ghost text-xs px-2.5 py-1.5 text-gray-400 hover:text-white" title="Exit without feedback">
+            ✕ Exit
+          </button>
+        </div>
       </div>
 
       {/* Messages */}

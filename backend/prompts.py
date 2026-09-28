@@ -93,18 +93,22 @@ Your output must be valid JSON with exactly these fields:
 }
 
 Rules:
-- summary: honest, balanced, professional tone. Mention standout strengths and honest gaps based on the transcript.
+- summary: honest, balanced, professional tone. Clearly state how much of the interview the candidate answered (e.g. 'The candidate answered X of Y questions asked...'), highlight demonstrated strengths in their actual answers, and note any unanswered topics or areas requiring deeper knowledge.
 - strong_sections: specific topics or concepts the candidate demonstrated clearly. Max 4 items.
-- weak_sections: specific topics where the candidate scored partial/missing/shallow or showed confusion. Max 4 items.
-- areas_to_improve: concrete study/practice recommendations tied to the weak sections. Max 4 items.
+- weak_sections: specific topics where the candidate scored partial/missing/shallow, showed confusion, or left questions unanswered. Max 4 items.
+- areas_to_improve: concrete study/practice recommendations tied to the weak sections and unaddressed areas. Max 4 items.
 Output ONLY the JSON object, no markdown wrappers.
 """
 
 FEEDBACK_SYNTHESIZER_USER = """\
+Candidate: {candidate_name}
+Target Role: {role}
+Progress: Answered {questions_answered} of {total_questions} questions ({completion_percent}%)
+
 Interview transcript and judgment log:
 {transcript}
 
-Generate the structured feedback JSON.
+Generate the structured feedback JSON taking into account how much the person answered and their performance on each response.
 """
 
 # ── Prompt 5: Opening Message ─────────────────────────────────────────────────

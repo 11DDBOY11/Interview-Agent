@@ -27,6 +27,7 @@ class InterviewSession:
     missing_retries_this_topic: int = 0
     # Track off-topic redirects (cap at 1 per topic)
     off_topic_redirects_this_topic: int = 0
+    is_force_done: bool = False
 
     @property
     def current_question(self) -> str | None:
@@ -37,7 +38,7 @@ class InterviewSession:
 
     @property
     def is_done(self) -> bool:
-        return self.plan_index >= len(self.questions)
+        return self.is_force_done or self.plan_index >= len(self.questions)
 
     def advance_topic(self) -> None:
         """Move to the next base question and reset per-topic counters."""
