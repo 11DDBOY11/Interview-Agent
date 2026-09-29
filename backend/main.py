@@ -99,6 +99,25 @@ async def init_interview(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/session/{session_id}/questions")
+async def get_session_questions(session_id: str):
+    """Return all questions asked during the interview session."""
+    session = _sessions.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {
+        "questions": [
+            {
+                "question": t.question,
+                "answer": t.answer,
+                "judgment": t.judgment,
+            }
+            for t in session.transcript
+        ],
+        "total_questions": len(session.questions),
+        "questions_answered": len([t for t in session.transcript if t.answer and t.answer.strip()]),
+    }
+
 @app.post("/api/interview", response_model=InterviewResponse)
 @limiter.limit(RATE_LIMIT)
 async def interview_step(request: Request, payload: InterviewRequest):
@@ -340,6 +359,8 @@ async def _safe_generate_feedback(session: InterviewSession) -> dict:
         
     score = round(total_turn_score / questions_answered)
     
+    # Try LLM feedback generation with multiple fallback levels
+    feedback = None
     try:
         feedback = await llm_module.generate_feedback(
             judgment_log=judgment_log,
@@ -349,21 +370,38 @@ async def _safe_generate_feedback(session: InterviewSession) -> dict:
             total_questions=total_questions,
         )
     except Exception as e:
-        print(f"FEEDBACK GENERATION FAILED: {e}")
-        feedback = {
-            "summary": f"The candidate answered {questions_answered} of {total_questions} questions ({completion_percent}% completion). Demonstrating an overall score of {score}%.",
-            "strong_sections": ["Demonstrated willingness to answer technical questions."],
-            "weak_sections": [f"{total_questions - questions_answered} questions remained unanswered."],
-            "areas_to_improve": ["Continue practicing explanations for core technical concepts."],
-        }
+        print(f"FEEDBACK GENERATION FAILED (LLM): {e}")
     
-    # Ensure all required list fields exist
-    strong_sections = feedback.get("strong_sections") or ["Technical fundamentals demonstrated."]
-    weak_sections = feedback.get("weak_sections") or ["Additional practice recommended."]
-    areas_to_improve = feedback.get("areas_to_improve") or ["Review core topics and frameworks."]
+    # If LLM feedback is None or missing required fields, build from judgment log
+    if not feedback or not isinstance(feedback, dict):
+        feedback = {}
+    
+    # Build detailed feedback from judgment log if LLM didn't provide good data
+    strong_from_log = []
+    weak_from_log = []
+    for t in valid_answers:
+        j = t.judgment or {}
+        q = j.get("quality", "shallow")
+        c = j.get("completeness", "partial")
+        if q == "strong" and c == "full":
+            strong_from_log.append(t.question[:80])
+        elif q in ("confused", "off_topic") or c == "missing":
+            weak_from_log.append(t.question[:80])
+    
+    # Use LLM data if available, otherwise build from log
+    strong_sections = feedback.get("strong_sections") or strong_from_log or ["Demonstrated willingness to answer technical questions."]
+    weak_sections = feedback.get("weak_sections") or weak_from_log or [f"{total_questions - questions_answered} questions remained unanswered."]
+    areas_to_improve = feedback.get("areas_to_improve") or ["Continue practicing explanations for core technical concepts."]
+    
+    summary = feedback.get("summary") or (
+        f"The candidate answered {questions_answered} of {total_questions} questions "
+        f"({completion_percent}% completion) with an overall performance score of {score}%. "
+        f"Key strengths include {len(strong_sections)} demonstrated areas, "
+        f"with {len(weak_sections)} areas needing further development."
+    )
     
     return {
-        "summary": feedback.get("summary") or f"The candidate answered {questions_answered} of {total_questions} questions with an overall score of {score}%.",
+        "summary": summary,
         "strong_sections": strong_sections,
         "weak_sections": weak_sections,
         "areas_to_improve": areas_to_improve,

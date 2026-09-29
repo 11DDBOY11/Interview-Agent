@@ -20,6 +20,22 @@ export interface InterviewResponse {
   feedback?: Feedback;
 }
 
+export interface SessionQuestion {
+  question: string;
+  answer: string | null;
+  judgment: {
+    completeness: string;
+    quality: string;
+    reasoning: string;
+  } | null;
+}
+
+export interface SessionQuestionsResponse {
+  questions: SessionQuestion[];
+  total_questions: number;
+  questions_answered: number;
+}
+
 export async function startInterview(
   sessionId: string,
   candidate: object
@@ -55,4 +71,13 @@ export async function sendMessage(
 
 export async function finishInterview(sessionId: string): Promise<InterviewResponse> {
   return sendMessage(sessionId, "__END_INTERVIEW__", "finish");
+}
+
+export async function getSessionQuestions(sessionId: string): Promise<SessionQuestionsResponse> {
+  const res = await fetch(`${API_BASE}/api/session/${sessionId}/questions`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail ?? "Failed to fetch session questions");
+  }
+  return res.json();
 }
